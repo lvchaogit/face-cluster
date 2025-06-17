@@ -1,0 +1,11 @@
+tqdm
+numpy==1.26.4
+scipy
+scikit-learn
+#insightface
+#infomap
+torch==2.3.1
+torchvision==0.18.1
+torchaudio==2.3.1
+faiss-cpu==1.8.0
+onnxruntime-gpu
