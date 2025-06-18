@@ -6,8 +6,6 @@ import torch
 from insightface.app import FaceAnalysis
 from torch.utils.data import Dataset, DataLoader
 
-import utils
-
 
 # 创建数据集类定义
 class FaceDataset(Dataset):
@@ -34,9 +32,6 @@ class FaceDataset(Dataset):
         return image, img_path
 
 
-app = FaceAnalysis(name='buffalo_l', root='D:\\features\\')
-
-
 # 主函数，包含所有处理逻辑
 def custom_collate_fn(batch):
     # 分离图像和路径
@@ -46,17 +41,24 @@ def custom_collate_fn(batch):
     return images, paths
 
 
-def process_images_incrementally(image_dir, feature_save_path, processed_files_set, path_list_file,logger):
+def process_images_incrementally(image_dir, feature_save_path, processed_files_set, path_list_file,config,logger):
+    # 获取FaceAnalysis配置
+    model_name = config['FaceAnalysis']['model_name']
+    batch_size = int(config['FaceAnalysis']['batch_size'])
+    model_root = config['FaceAnalysis']['model_root']
+    num_workers = int(config['FaceAnalysis']['num_workers'])
+
     """  增量特征提取，并合并到主特征  """
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     logger.info(f"使用设备: {device}")
     # 使用检测和识别模型，如果有GPU则使用GPU
     ctx_id = 0 if torch.cuda.is_available() else -1
+    app = FaceAnalysis(name=model_name, root=model_root)
     app.prepare(ctx_id=ctx_id, det_size=(640, 640))
 
     new_dataset = FaceDataset(image_dir)
     # 创建数据加载器
-    dataloader = DataLoader(new_dataset, batch_size=4, shuffle=False, num_workers=2,
+    dataloader = DataLoader(new_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers,
                             pin_memory=True, collate_fn=custom_collate_fn)
 
     new_features = []
